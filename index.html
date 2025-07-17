@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Movie Poster Finder</title>
+  <title>Movie Poster Finder by Name</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -32,16 +32,15 @@
       border-radius: 12px;
       box-shadow: 0 0 10px #ff629c;
     }
-    #posterUrl, #movieTitle {
+    #posterUrl {
       color: #0ff;
-      word-break: break-word;
-      margin-bottom: 5px;
+      word-break: break-all;
     }
   </style>
 </head>
 <body>
   <h1>🎬 Movie Poster Finder (By Name)</h1>
-  <input type="text" id="movieName" placeholder="Enter movie name (e.g. Inception)" />
+  <input type="text" id="movieName" placeholder="Enter movie name (e.g. Avatar)" />
   <button onclick="getPoster()">Search</button>
 
   <div id="result"></div>
@@ -61,20 +60,14 @@
           const movie = data.results[0];
           if (movie && movie.poster_path) {
             const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-            const title = movie.title;
             document.getElementById("result").innerHTML = `
-              <p><strong>Official Title:</strong></p>
-              <div id="movieTitle">${title}</div>
-              <button onclick="copyText('movieTitle')">🎬 Copy Title</button>
-
               <p><strong>Poster URL:</strong></p>
               <div id="posterUrl">${posterUrl}</div>
-              <button onclick="copyText('posterUrl')">📋 Copy URL</button><br>
-
+              <button onclick="copyURL()">📋 Copy URL</button><br>
               <img src="${posterUrl}" alt="Poster">
             `;
           } else {
-            document.getElementById("result").innerHTML = "❌ Movie not found.";
+            document.getElementById("result").innerHTML = "❌ Poster not found.";
           }
         })
         .catch(err => {
@@ -83,10 +76,10 @@
         });
     }
 
-    function copyText(elementId) {
-      const text = document.getElementById(elementId).innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("✅ Copied: " + text);
+    function copyURL() {
+      const urlText = document.getElementById("posterUrl").innerText;
+      navigator.clipboard.writeText(urlText).then(() => {
+        alert("✅ Poster URL copied!");
       });
     }
   </script>
