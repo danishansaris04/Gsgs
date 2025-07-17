@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DFLix Movies</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: #0d0d0d;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    #starsCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      width: 100vw;
+      height: 100vh;
+      background: transparent;
+    }
+
+    .section-title {
+      font-size: 1.7rem;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      padding-left: 10px;
+      position: relative;
+      animation: fadeSlideIn 1s ease-in-out;
+    }
+
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      width: 5px;
+      height: 90%;
+      background: linear-gradient(180deg, #ff629c, #00d9ff);
+      border-radius: 5px;
+      animation: gradientGlow 3s infinite linear;
+    }
+
+    @keyframes gradientGlow {
+      0% { filter: drop-shadow(0 0 4px #ff629c); }
+      50% { filter: drop-shadow(0 0 10px #00d9ff); }
+      100% { filter: drop-shadow(0 0 4px #ff629c); }
+    }
+
+    .movie-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      width: 150px;
+      height: 230px;
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #333;
+      position: relative;
+      animation: slideInUp 0.7s ease forwards;
+    }
+
+    .movie-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #ff629c;
+    }
+
+    .movie-poster {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-bottom: 1px solid #444;
+    }
+
+    .movie-title {
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 8px;
+      color: #ddd;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .more-card {
+      background: rgba(255, 255, 255, 0.1);
+      color: #00d9ff;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      transition: all 0.3s;
+      width: 150px;
+      height: 230px;
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      pointer-events: auto;
+      cursor: pointer;
+      animation: fadeIn 1s ease;
+    }
+
+    #searchInput {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      color: white;
+      transition: all 0.3s;
+      animation: fadeSlideIn 1s ease;
+    }
+
+    #searchInput:focus {
+      border-color: #ff629c;
+      box-shadow: 0 0 10px #ff629c55;
+    }
+
+    #searchInput::placeholder {
+      color: #888;
+    }
+
+    #popup, #moreModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000000d9;
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #popup > div,
+    #moreModal > div {
+      background: #1b1b1b;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 90%;
+      max-height: 85%;
+      overflow-y: auto;
+      color: white;
+      box-shadow: 0 0 20px #ff629c;
+      animation: popupSlide 0.4s ease;
+    }
+
+    #popup a, #moreModal a {
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    /* Animations */
+    @keyframes slideInUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes fadeSlideIn {
+      0% { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popupSlide {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    ::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ff629c75;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starsCanvas"></canvas>
+
+  <div class="container py-4">
+    <h2 class="text-center mb-4 text-white">🎬 DFLix Movies</h2>
+    <input type="text" id="searchInput" class="form-control mb-4" placeholder="Search movies...">
+    <div id="movieSections"></div>
+  </div>
+
+  <!-- Episode Popup -->
+  <div id="popup">
+    <div>
+      <h4 id="popupTitle"></h4>
+      <ul id="episodeList" style="list-style:none; padding-left:0;"></ul>
+      <button class="btn btn-danger mt-3" onclick="document.getElementById('popup').style.display='none'">Close</button>
+    </div>
+  </div>
+
+  <!-- More Movies Modal -->
+  <div id="moreModal">
+    <div>
+      <h4 id="moreModalTitle"></h4>
+      <div id="moreModalList" class="d-flex flex-wrap gap-3 mt-3"></div>
+      <button class="btn btn-danger mt-4" onclick="document.getElementById('moreModal').style.display='none'">Close</button>
+    </div>
+  </div>
+
+  <!-- Firebase & Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyATfDfJNk0lPVpcsZk7yj2p_DSdK9sQXvo",
+      authDomain: "dflix-7b2d2.firebaseapp.com",
+      databaseURL: "https://dflix-7b2d2-default-rtdb.firebaseio.com",
+      projectId: "dflix-7b2d2",
+      storageBucket: "dflix-7b2d2.appspot.com",
+      messagingSenderId: "410654152125",
+      appId: "1:410654152125:web:c55db9c81363abce66eed4",
+      measurementId: "G-H3JQPK01YT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const searchInput = document.getElementById('searchInput');
+    const movieSections = document.getElementById('movieSections');
+
+    async function loadMovies() {
+      const querySnapshot = await getDocs(collection(db, "movies"));
+      const sections = {};
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const section = data.section;
+        if (!sections[section]) sections[section] = [];
+        sections[section].push(data);
+      });
+      renderSections(sections);
+    }
+
+    function renderSections(sections) {
+      movieSections.innerHTML = '';
+      for (const [section, movies] of Object.entries(sections)) {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.innerHTML = `<h4 class="section-title">${section}</h4>`;
+
+        const scrollContainer = document.createElement('div');
+        scrollContainer.className = 'd-flex overflow-auto gap-3 px-2 pb-3';
+        scrollContainer.style.scrollSnapType = 'x mandatory';
+
+        movies.slice(0, 5).forEach(movie => {
+          const card = document.createElement('div');
+          card.className = 'movie-card';
+          card.innerHTML = `
+            <img src="${movie.poster}" alt="${movie.title}" class="movie-poster">
+            <div class="movie-title">${movie.title}</div>
+          `;
+          if (movie.section === "Web Series" && movie.episodes) {
+            card.onclick = () => showEpisodesPopup(movie.title, movie.episodes);
+          } else {
+            card.onclick = () => window.open(movie.url, '_blank');
+          }
+          scrollContainer.appendChild(card);
+        });
+
+        if (movies.length > 5) {
+          const more = document.createElement('div');
+          more.className = 'more-card';
+          more.innerText = '▶ Show All';
+          more.onclick = () => showMoreModal(section, movies);
+          scrollContainer.appendChild(more);
+        }
+
+        sectionDiv.appendChild(scrollContainer);
+        movieSections.appendChild(sectionDiv);
+      }
+    }
+
+    function showEpisodesPopup(title, episodes) {
+      document.getElementById('popupTitle').innerText = title + " - Episodes";
+      const list = document.getElementById('episodeList');
+      list.innerHTML = '';
+
+      episodes.forEach((ep, i) => {
+        const li = document.createElement('li');
+        li.style.marginBottom = "10px";
+
+        const epTitle = document.createElement('div');
+        epTitle.textContent = `Episode ${i + 1}: ${ep.title}`;
+        epTitle.style.fontWeight = 'bold';
+        epTitle.style.marginBottom = '4px';
+
+        const watchBtn = document.createElement('a');
+        watchBtn.href = ep.url;
+        watchBtn.target = '_blank';
+        watchBtn.textContent = '🎬 Watch Now';
+        watchBtn.className = 'btn btn-primary btn-sm';
+
+        li.appendChild(epTitle);
+        li.appendChild(watchBtn);
+        list.appendChild(li);
+      });
+
+      document.getElementById('popup').style.display = 'flex';
+    }
+
+    function showMoreModal(sectionName, movies) {
+      document.getElementById("moreModalTitle").innerText = `${sectionName} - All Movies`;
+      const modalList = document.getElementById("moreModalList");
+      modalList.innerHTML = '';
+
+      movies.forEach(movie => {
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        card.style.width = '140px';
+        card.style.height = '220px';
+
+        card.innerHTML = `
+          <img src="${movie.poster}" class="movie-poster">
+          <div class="movie-title">${movie.title}</div>
+        `;
+
+        if (movie.section === "Web Series" && movie.episodes) {
+          card.onclick = () => showEpisodesPopup(movie.title, movie.episodes);
+        } else {
+          card.onclick = () => window.open(movie.url, '_blank');
+        }
+
+        modalList.appendChild(card);
+      });
+
+      document.getElementById("moreModal").style.display = 'flex';
+    }
+
+    searchInput.addEventListener('input', async () => {
+      const val = searchInput.value.toLowerCase();
+      const querySnapshot = await getDocs(collection(db, "movies"));
+      const filtered = {};
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.title.toLowerCase().includes(val)) {
+          if (!filtered[data.section]) filtered[data.section] = [];
+          filtered[data.section].push(data);
+        }
+      });
+      renderSections(filtered);
+    });
+
+    loadMovies();
+  </script>
+
+  <!-- Shooting Stars Script -->
+  <script>
+    const canvas = document.getElementById('starsCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    const stars = [];
+
+    class Star {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.len = Math.random() * 80 + 10;
+        this.speed = Math.random() * 6 + 2;
+        this.opacity = Math.random() * 0.5 + 0.2;
+      }
+      update() {
+        this.x -= this.speed;
+        this.y += this.speed;
+        if (this.x < 0 || this.y > canvas.height) this.reset();
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x + this.len * -0.5, this.y + this.len);
+        ctx.strokeStyle = `rgba(255,255,255,${this.opacity})`;
+        ctx.lineWidth = 0.2;
+        ctx.stroke();
+      }
+    }
+
+    for (let i = 0; i < 60; i++) {
+      stars.push(new Star());
+    }
+
+    function animateStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(star => {
+        star.update();
+        star.draw();
+      });
+      requestAnimationFrame(animateStars);
+    }
+
+    animateStars();
+  </script>
+</body>
+</html>
