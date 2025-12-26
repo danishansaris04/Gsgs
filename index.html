@@ -1,69 +1,246 @@
-3. The ruler of France at the time of the Revolution was King Louis XVI.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D-FLIX Admin | Secure Manager</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
+    :root { --primary: #00f2ff; --bg-dark: #08090a; --card-bg: #121418; }
+    body { background-color: var(--bg-dark); color: white; font-family: 'Outfit', sans-serif; padding-top: 140px; padding-bottom: 100px; overflow-x: hidden; }
 
-4. The guillotine was invented by Dr. Joseph Guillotin.
+    /* Login Screen */
+    #loginOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg-dark); z-index: 9999; display: flex;
+      align-items: center; justify-content: center; backdrop-filter: blur(10px);
+    }
+    .login-box {
+      width: 90%; max-width: 380px; padding: 30px;
+      background: var(--card-bg); border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    }
 
-5. Maximilien Robespierre was a leader of the Jacobins Club and one of the most influential figures during the Reign of Terror. He believed in equality and virtue but ruled harshly, executing many who opposed his ideas.
+    /* Header & Search */
+    .admin-header {
+      background: rgba(18, 20, 24, 0.98); backdrop-filter: blur(15px);
+      position: fixed; top: 0; width: 100%; z-index: 2000; padding: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .search-group { position: relative; width: 100%; max-width: 600px; margin: 0 auto; }
+    .search-group input { 
+      width: 100%; background: #1c1f26; border: 1px solid #333; color: white; 
+      border-radius: 50px; padding: 12px 25px; outline: none; transition: 0.3s;
+    }
+    .search-group input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0,242,255,0.2); }
+    .search-group i { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--primary); cursor: pointer; }
 
-6. The slave trade in the French colonies came to an end in 1794.
+    /* UI Elements */
+    .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 20px; }
+    .m-card {
+      position: relative; background: var(--card-bg); border-radius: 15px; 
+      overflow: hidden; cursor: pointer; transition: 0.3s; border: 2px solid transparent;
+    }
+    .m-card:hover { transform: scale(1.05); }
+    .m-card.has-link { border-color: var(--primary); }
+    .m-card img { width: 100%; height: 200px; object-fit: cover; }
+    .m-content { position: absolute; bottom: 0; width: 100%; padding: 8px; background: linear-gradient(transparent, #000); font-size: 0.75rem; text-align: center; }
+    .badge-live { position: absolute; top: 10px; left: 10px; background: var(--primary); color: #000; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 5px; }
 
-7. The chief aim of the women's clubs was to demand equal political rights, education, and work opportunities for women.
+    /* Modal */
+    #editModal {
+      position: fixed; bottom: -100%; left: 0; width: 100%; background: #16181d; 
+      border-radius: 25px 25px 0 0; padding: 25px; z-index: 3000; transition: 0.4s ease;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+    }
+    #editModal.active { bottom: 0; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2500; }
+    
+    .loader { display: none; text-align: center; padding: 20px; color: var(--primary); }
+    .logout-btn { position: absolute; right: 20px; top: 20px; font-size: 1.2rem; color: #ff4d4d; cursor: pointer; }
+  </style>
+</head>
+<body>
 
-8. The two important thinkers responsible for inspiring the French Revolution were Jean Jacques Rousseau and Montesquieu.
+  <div id="loginOverlay">
+    <div class="login-box">
+        <div class="text-center mb-4">
+            <i class="fa-solid fa-shield-halved fa-3x text-info mb-3"></i>
+            <h4 class="fw-bold text-white">ADMIN ACCESS</h4>
+            <p class="text-secondary small">Please login to manage D-FLIX</p>
+        </div>
+        <input type="email" id="email" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Admin Email">
+        <input type="password" id="pass" class="form-control bg-dark text-white border-secondary mb-4" placeholder="Password">
+        <button class="btn btn-info w-100 fw-bold py-2" id="btnLogin">LOGIN NOW</button>
+        <div id="loginMsg" class="mt-3 text-center small text-danger" style="display:none;"></div>
+    </div>
+  </div>
 
-9. Montesquieu’s famous book is “The Spirit of the Laws”.
+  <div class="admin-header">
+    <i class="fa-solid fa-right-from-bracket logout-btn" id="btnLogout"></i>
+    <div class="text-center mb-2"><h5 class="fw-bold text-info mb-0">D-FLIX MANAGER</h5></div>
+    <div class="search-group">
+        <input type="text" id="mainSearch" placeholder="Search Movies/Series from IMDb...">
+        <i class="fa-solid fa-magnifying-glass" id="searchBtn"></i>
+    </div>
+  </div>
 
-10. The quote “Man is born free, but he is chained everywhere” was said by Jean Jacques Rousseau.
+  <div class="container-fluid">
+    <div id="loader" class="loader"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+    <div id="movieContainer" class="movie-grid"></div>
+  </div>
 
-12. The session of the Estates General was held on May 5, 1789.
+  <div class="overlay" id="overlay"></div>
+  <div id="editModal">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="text-info fw-bold mb-0" id="mTitle">Edit Content</h6>
+          <i class="fa-solid fa-times text-white" id="closeModal"></i>
+      </div>
+      <input type="hidden" id="mId">
+      <div class="mb-3">
+          <label class="small text-secondary mb-1">Streaming Link (TeraBox/Direct)</label>
+          <input type="text" id="mUrl" class="form-control bg-dark text-white border-secondary py-2" placeholder="Paste link here...">
+      </div>
+      <div class="row g-2">
+          <div class="col-6"><button class="btn btn-outline-secondary w-100" id="cancelBtn">Cancel</button></div>
+          <div class="col-6"><button class="btn btn-info w-100 fw-bold" id="saveBtn">SAVE LINK</button></div>
+      </div>
+  </div>
 
-13. The fortress Bastille (the jail) fell on July 14, 1789.
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-14. The National Assembly sentenced King Louis XVI to death by guillotine.
+    const firebaseConfig = {
+      apiKey: "AIzaSyATfDfJNk0lPVpcsZk7yj2p_DSdK9sQXvo",
+      authDomain: "dflix-7b2d2.firebaseapp.com",
+      projectId: "dflix-7b2d2",
+      storageBucket: "dflix-7b2d2.appspot.com",
+      messagingSenderId: "410654152125",
+      appId: "1:410654152125:web:c55db9c81363abce66eed4"
+    };
 
-15. The provinces of Paris, Bordeaux, Nantes, and Marseilles witnessed rebellions during the rule of the National Assembly.
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const API_KEY = "f2ff6664";
 
-16. The constitution framed by the National Assembly was known as the Constitution of 1791.
+    let currentResults = [];
+    let firebaseLinks = {};
 
-17. The ‘Broken Chain’ symbolized freedom — breaking free from bondage.
+    // --- Authentication Logic ---
+    document.getElementById('btnLogin').onclick = async () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const msg = document.getElementById('loginMsg');
+        
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            msg.innerText = "Invalid credentials!";
+            msg.style.display = 'block';
+        }
+    };
 
-18. The ‘Bundle of Rods’ meant strength through unity — many rods together are stronger than one.
+    document.getElementById('btnLogout').onclick = () => signOut(auth);
 
-19. The ‘Eye within a triangle surrounded by rays of light’ symbolized the all-seeing eye of God watching over people’s actions.
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            initApp();
+        } else {
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
+    });
 
-20. The ‘Royal Sceptre’ symbolized the power and authority of the king.
+    // --- Core Logic ---
+    function initApp() {
+        onSnapshot(collection(db, "movies"), (snap) => {
+            firebaseLinks = {};
+            snap.forEach(d => firebaseLinks[d.id] = d.data().url);
+            render();
+        });
+    }
 
-21. The ‘Snake with its tail in its mouth’ stood for eternity (something that has no beginning or end).
+    const searchIMDb = async () => {
+        const query = document.getElementById('mainSearch').value;
+        if(!query) return;
+        
+        document.getElementById('loader').style.display = 'block';
+        try {
+            const res = await fetch(`https://www.omdbapi.com/?s=${query}&apikey=${API_KEY}`);
+            const data = await res.json();
+            if(data.Search) {
+                currentResults = data.Search.map(m => ({
+                    id: m.imdbID, title: m.Title, poster: m.Poster, type: m.Type
+                }));
+            }
+        } catch (e) { console.error(e); }
+        document.getElementById('loader').style.display = 'none';
+        render();
+    }
 
-22. The ‘Red Phrygian Cap’ symbolized freedom and liberty.
+    function render() {
+        const container = document.getElementById('movieContainer');
+        container.innerHTML = "";
+        currentResults.forEach(m => {
+            const link = firebaseLinks[m.id];
+            const card = document.createElement('div');
+            card.className = `m-card ${link ? 'has-link' : ''}`;
+            card.onclick = () => openEdit(m.id, m.title, link || '', m.poster, m.type);
+            card.innerHTML = `
+                <img src="${m.poster !== 'N/A' ? m.poster : 'https://via.placeholder.com/200x300'}">
+                ${link ? '<div class="badge-live">LINK ACTIVE</div>' : ''}
+                <div class="m-content">${m.title}</div>
+            `;
+            container.appendChild(card);
+        });
+    }
 
-23. The blue, white, and red colours represented the national flag of France — showing unity of the people.
+    function openEdit(id, title, url, poster, type) {
+        document.getElementById('mId').value = id;
+        document.getElementById('mTitle').innerText = title;
+        document.getElementById('mUrl').value = url;
+        document.getElementById('mId').dataset.poster = poster;
+        document.getElementById('mId').dataset.type = type;
+        document.getElementById('editModal').classList.add('active');
+        document.getElementById('overlay').style.display = 'block';
+    }
 
-24. The ‘Woman with wings’ symbolized the law.
+    const closeEdit = () => {
+        document.getElementById('editModal').classList.remove('active');
+        document.getElementById('overlay').style.display = 'none';
+    }
 
-25. The ‘Law Tablet’ symbolized equality before law.
+    document.getElementById('saveBtn').onclick = async () => {
+        const id = document.getElementById('mId').value;
+        const url = document.getElementById('mUrl').value;
+        if(!url) return alert("Enter link");
+        
+        try {
+            await setDoc(doc(db, "movies", id), {
+                title: document.getElementById('mTitle').innerText,
+                url: url,
+                poster: document.getElementById('mId').dataset.poster,
+                section: document.getElementById('mId').dataset.type === 'series' ? 'Web Series' : 'Hollywood'
+            });
+            closeEdit();
+        } catch(e) { alert("Error saving!"); }
+    }
 
-26. The assembly elected in 1792 was called the National Convention.
+    // Event Listeners
+    document.getElementById('searchBtn').onclick = searchIMDb;
+    document.getElementById('mainSearch').onkeypress = (e) => e.key === 'Enter' && searchIMDb();
+    document.getElementById('closeModal').onclick = closeEdit;
+    document.getElementById('cancelBtn').onclick = closeEdit;
+    document.getElementById('overlay').onclick = closeEdit;
 
-27. The ‘Directory’ was a five-member government that ruled France after the fall of Robespierre.
-
-28. The Directory failed because of corruption, internal conflicts, and political instability.
-
-29. The law for the emancipation of slaves was enacted by the Convention in 1794.
-
-30. Napoleon was defeated at the Battle of Waterloo in 1815.
-
-
-Short Answer
-
-
-1. The ancient bureaucratic system in France was called the Old Regime, under which the society was divided into three estates — clergy, nobles, and common people.
-
-3. The middle class in France had education and wealth but no political rights. They paid heavy taxes and were denied any say in government matters.
-
-4. The farmers (peasants) suffered the most — they paid high taxes and tithes, worked on the nobles’ lands, and lived in poverty and hunger.
-
-5. The social condition of France in the 18th century was unequal and unjust. The First and Second Estates enjoyed privileges, while the Third Estate bore all the burdens of taxes and hard work.
-
+  </script>
+</body>
+</html>
 6. 14 July 1789 is significant because the people of Paris stormed the Bastille prison, marking the beginning of the French Revolution.
 
 7. The ‘Declaration of the Rights of Man and Citizen’ (1789) proclaimed freedom, equality, and fraternity as the natural rights of all citizens and ended social privileges.
