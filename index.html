@@ -3,27 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>D-FLIX Admin | Secure Manager</title>
+  <title>D-FLIX | Secure Admin Panel</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
     :root { --primary: #00f2ff; --bg-dark: #08090a; --card-bg: #121418; }
-    body { background-color: var(--bg-dark); color: white; font-family: 'Outfit', sans-serif; padding-top: 140px; padding-bottom: 100px; overflow-x: hidden; }
+    
+    body { background-color: var(--bg-dark); color: white; font-family: 'Outfit', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
 
-    /* Login Screen */
+    /* Login Screen Overlay */
     #loginOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg-dark); z-index: 9999; display: flex;
-      align-items: center; justify-content: center; backdrop-filter: blur(10px);
+      background: #08090a; z-index: 9999; display: flex;
+      align-items: center; justify-content: center;
     }
     .login-box {
-      width: 90%; max-width: 380px; padding: 30px;
-      background: var(--card-bg); border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      width: 90%; max-width: 380px; padding: 35px;
+      background: #121418; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1); text-align: center;
     }
 
-    /* Header & Search */
+    /* Main Content Area (Hidden until login) */
+    #adminPanel { display: none; padding-top: 140px; padding-bottom: 50px; }
+
+    /* Header */
     .admin-header {
       background: rgba(18, 20, 24, 0.98); backdrop-filter: blur(15px);
       position: fixed; top: 0; width: 100%; z-index: 2000; padding: 15px;
@@ -34,85 +38,82 @@
       width: 100%; background: #1c1f26; border: 1px solid #333; color: white; 
       border-radius: 50px; padding: 12px 25px; outline: none; transition: 0.3s;
     }
-    .search-group input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0,242,255,0.2); }
     .search-group i { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--primary); cursor: pointer; }
 
-    /* UI Elements */
+    /* Grid & Cards */
     .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 20px; }
     .m-card {
-      position: relative; background: var(--card-bg); border-radius: 15px; 
-      overflow: hidden; cursor: pointer; transition: 0.3s; border: 2px solid transparent;
+      position: relative; background: var(--card-bg); border-radius: 12px; 
+      overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.3s;
     }
-    .m-card:hover { transform: scale(1.05); }
     .m-card.has-link { border-color: var(--primary); }
     .m-card img { width: 100%; height: 200px; object-fit: cover; }
-    .m-content { position: absolute; bottom: 0; width: 100%; padding: 8px; background: linear-gradient(transparent, #000); font-size: 0.75rem; text-align: center; }
+    .m-content { position: absolute; bottom: 0; width: 100%; padding: 8px; background: linear-gradient(transparent, #000); font-size: 0.7rem; text-align: center; }
+    
     .badge-live { position: absolute; top: 10px; left: 10px; background: var(--primary); color: #000; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 5px; }
+    
+    /* Logout Icon */
+    .logout-btn { position: absolute; right: 20px; top: 20px; color: #ff4d4d; cursor: pointer; font-size: 1.2rem; }
+
+    /* Loader */
+    .loader { display: none; text-align: center; padding: 20px; color: var(--primary); }
 
     /* Modal */
     #editModal {
       position: fixed; bottom: -100%; left: 0; width: 100%; background: #16181d; 
       border-radius: 25px 25px 0 0; padding: 25px; z-index: 3000; transition: 0.4s ease;
-      box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
     }
     #editModal.active { bottom: 0; }
     .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2500; }
-    
-    .loader { display: none; text-align: center; padding: 20px; color: var(--primary); }
-    .logout-btn { position: absolute; right: 20px; top: 20px; font-size: 1.2rem; color: #ff4d4d; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <div id="loginOverlay">
     <div class="login-box">
-        <div class="text-center mb-4">
-            <i class="fa-solid fa-shield-halved fa-3x text-info mb-3"></i>
-            <h4 class="fw-bold text-white">ADMIN ACCESS</h4>
-            <p class="text-secondary small">Please login to manage D-FLIX</p>
-        </div>
-        <input type="email" id="email" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Admin Email">
+        <i class="fa-solid fa-lock fa-3x text-info mb-3"></i>
+        <h4 class="fw-bold mb-4">ADMIN LOGIN</h4>
+        <input type="email" id="email" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Email">
         <input type="password" id="pass" class="form-control bg-dark text-white border-secondary mb-4" placeholder="Password">
-        <button class="btn btn-info w-100 fw-bold py-2" id="btnLogin">LOGIN NOW</button>
-        <div id="loginMsg" class="mt-3 text-center small text-danger" style="display:none;"></div>
+        <button class="btn btn-info w-100 fw-bold" id="btnLogin">ACCESS PANEL</button>
+        <p id="loginMsg" class="text-danger mt-3 small" style="display:none;">Invalid Login!</p>
     </div>
   </div>
 
-  <div class="admin-header">
-    <i class="fa-solid fa-right-from-bracket logout-btn" id="btnLogout"></i>
-    <div class="text-center mb-2"><h5 class="fw-bold text-info mb-0">D-FLIX MANAGER</h5></div>
-    <div class="search-group">
-        <input type="text" id="mainSearch" placeholder="Search Movies/Series from IMDb...">
-        <i class="fa-solid fa-magnifying-glass" id="searchBtn"></i>
+  <div id="adminPanel">
+    <div class="admin-header">
+        <i class="fa-solid fa-power-off logout-btn" id="btnLogout"></i>
+        <div class="text-center mb-2"><h5 class="fw-bold text-info">D-FLIX MANAGER</h5></div>
+        <div class="search-group">
+            <input type="text" id="mainSearch" placeholder="Search Movie or Series Name...">
+            <i class="fa-solid fa-magnifying-glass" id="searchBtn"></i>
+        </div>
     </div>
-  </div>
 
-  <div class="container-fluid">
-    <div id="loader" class="loader"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
-    <div id="movieContainer" class="movie-grid"></div>
+    <div class="container-fluid">
+        <div id="loader" class="loader"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>
+        <div id="movieContainer" class="movie-grid"></div>
+    </div>
   </div>
 
   <div class="overlay" id="overlay"></div>
   <div id="editModal">
       <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="text-info fw-bold mb-0" id="mTitle">Edit Content</h6>
-          <i class="fa-solid fa-times text-white" id="closeModal"></i>
+          <h6 class="text-info fw-bold mb-0" id="mTitle">Edit Link</h6>
+          <i class="fa-solid fa-xmark text-white" id="closeX"></i>
       </div>
       <input type="hidden" id="mId">
-      <div class="mb-3">
-          <label class="small text-secondary mb-1">Streaming Link (TeraBox/Direct)</label>
-          <input type="text" id="mUrl" class="form-control bg-dark text-white border-secondary py-2" placeholder="Paste link here...">
-      </div>
+      <input type="text" id="mUrl" class="form-control bg-dark text-white border-secondary mb-3" placeholder="Paste TeraBox/Streaming Link...">
       <div class="row g-2">
-          <div class="col-6"><button class="btn btn-outline-secondary w-100" id="cancelBtn">Cancel</button></div>
-          <div class="col-6"><button class="btn btn-info w-100 fw-bold" id="saveBtn">SAVE LINK</button></div>
+          <div class="col-6"><button class="btn btn-secondary w-100" id="btnCancel">Cancel</button></div>
+          <div class="col-6"><button class="btn btn-info w-100 fw-bold" id="btnSave">SAVE</button></div>
       </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyATfDfJNk0lPVpcsZk7yj2p_DSdK9sQXvo",
@@ -131,33 +132,34 @@
     let currentResults = [];
     let firebaseLinks = {};
 
-    // --- Authentication Logic ---
+    // --- 1. Security & Auth ---
     document.getElementById('btnLogin').onclick = async () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        const msg = document.getElementById('loginMsg');
-        
         try {
+            // Persistence set ki hai taaki browser band hone par logout na ho (optional)
+            await setPersistence(auth, browserLocalPersistence);
             await signInWithEmailAndPassword(auth, email, pass);
         } catch (e) {
-            msg.innerText = "Invalid credentials!";
-            msg.style.display = 'block';
+            document.getElementById('loginMsg').style.display = 'block';
         }
     };
 
-    document.getElementById('btnLogout').onclick = () => signOut(auth);
+    document.getElementById('btnLogout').onclick = () => signOut(auth).then(() => location.reload());
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('loginOverlay').style.display = 'none';
-            initApp();
+            document.getElementById('adminPanel').style.display = 'block';
+            syncDatabase();
         } else {
             document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('adminPanel').style.display = 'none';
         }
     });
 
-    // --- Core Logic ---
-    function initApp() {
+    // --- 2. Database Sync ---
+    function syncDatabase() {
         onSnapshot(collection(db, "movies"), (snap) => {
             firebaseLinks = {};
             snap.forEach(d => firebaseLinks[d.id] = d.data().url);
@@ -165,19 +167,16 @@
         });
     }
 
+    // --- 3. Search & Render ---
     const searchIMDb = async () => {
         const query = document.getElementById('mainSearch').value;
         if(!query) return;
-        
         document.getElementById('loader').style.display = 'block';
         try {
             const res = await fetch(`https://www.omdbapi.com/?s=${query}&apikey=${API_KEY}`);
             const data = await res.json();
-            if(data.Search) {
-                currentResults = data.Search.map(m => ({
-                    id: m.imdbID, title: m.Title, poster: m.Poster, type: m.Type
-                }));
-            }
+            currentResults = data.Search ? data.Search : [];
+            if(!data.Search) alert("No Results!");
         } catch (e) { console.error(e); }
         document.getElementById('loader').style.display = 'none';
         render();
@@ -185,21 +184,22 @@
 
     function render() {
         const container = document.getElementById('movieContainer');
-        container.innerHTML = "";
+        container.innerHTML = currentResults.length ? "" : "<p class='text-center w-100 text-secondary mt-5'>Search something to start...</p>";
         currentResults.forEach(m => {
-            const link = firebaseLinks[m.id];
+            const link = firebaseLinks[m.imdbID];
             const card = document.createElement('div');
             card.className = `m-card ${link ? 'has-link' : ''}`;
-            card.onclick = () => openEdit(m.id, m.title, link || '', m.poster, m.type);
+            card.onclick = () => openEdit(m.imdbID, m.Title, link || '', m.Poster, m.Type);
             card.innerHTML = `
-                <img src="${m.poster !== 'N/A' ? m.poster : 'https://via.placeholder.com/200x300'}">
+                <img src="${m.Poster !== 'N/A' ? m.Poster : 'https://via.placeholder.com/200x300?text=No+Poster'}">
                 ${link ? '<div class="badge-live">LINK ACTIVE</div>' : ''}
-                <div class="m-content">${m.title}</div>
+                <div class="m-content">${m.Title}</div>
             `;
             container.appendChild(card);
         });
     }
 
+    // --- 4. Edit Modal Logic ---
     function openEdit(id, title, url, poster, type) {
         document.getElementById('mId').value = id;
         document.getElementById('mTitle').innerText = title;
@@ -213,13 +213,13 @@
     const closeEdit = () => {
         document.getElementById('editModal').classList.remove('active');
         document.getElementById('overlay').style.display = 'none';
-    }
+    };
 
-    document.getElementById('saveBtn').onclick = async () => {
+    document.getElementById('btnSave').onclick = async () => {
         const id = document.getElementById('mId').value;
         const url = document.getElementById('mUrl').value;
-        if(!url) return alert("Enter link");
-        
+        if(!url) return alert("Please enter a link!");
+
         try {
             await setDoc(doc(db, "movies", id), {
                 title: document.getElementById('mTitle').innerText,
@@ -228,34 +228,17 @@
                 section: document.getElementById('mId').dataset.type === 'series' ? 'Web Series' : 'Hollywood'
             });
             closeEdit();
-        } catch(e) { alert("Error saving!"); }
-    }
+            alert("Saved Successfully!");
+        } catch(e) { alert("Permission Denied!"); }
+    };
 
-    // Event Listeners
+    // Event Bindings
     document.getElementById('searchBtn').onclick = searchIMDb;
     document.getElementById('mainSearch').onkeypress = (e) => e.key === 'Enter' && searchIMDb();
-    document.getElementById('closeModal').onclick = closeEdit;
-    document.getElementById('cancelBtn').onclick = closeEdit;
+    document.getElementById('closeX').onclick = closeEdit;
+    document.getElementById('btnCancel').onclick = closeEdit;
     document.getElementById('overlay').onclick = closeEdit;
 
   </script>
 </body>
 </html>
-6. 14 July 1789 is significant because the people of Paris stormed the Bastille prison, marking the beginning of the French Revolution.
-
-7. The ‘Declaration of the Rights of Man and Citizen’ (1789) proclaimed freedom, equality, and fraternity as the natural rights of all citizens and ended social privileges.
-
-8. The National Assembly had defects such as giving limited powers to the king, voting rights only to rich men, and ignoring women’s rights.
-9. The Constitution of 1791 limited the powers of the king and established a constitutional monarchy. It gave powers to the Legislative Assembly and allowed only tax-paying men to vote.
-
-10. The Jacobins were radical revolutionaries led by Maximilien Robespierre. They believed in equality and wanted to remove the monarchy completely.
-
-11. The Directory was a five-member government that ruled France after the fall of Robespierre (from 1795 to 1799).
-
-12. Robespierre’s rule is called the “Reign of Terror” because he executed thousands of people by guillotine who were suspected of being enemies of the revolution.
-
-13. The Fort of Bastille was a symbol of royal power and oppression. Its fall on 14 July 1789 marked the beginning of the French Revolution and the people’s victory over tyranny.
-
-14. Napoleon Bonaparte was a brilliant military leader who became Emperor of France in 1804. He brought many reforms, spread revolutionary ideas across Europe, but was later defeated at Waterloo in 1815.
-
-15. The ‘Olympe de Gouges’ Constitution (1791) demanded equal rights for women, including the right to vote, property, education, and participation in government.
