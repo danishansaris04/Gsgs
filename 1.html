@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFlix Pro - Direct Stream</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; text-align: center; padding: 40px; margin: 0; }
+        .container { max-width: 500px; margin: auto; background: #111; padding: 30px; border-radius: 15px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #e50914; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #e50914; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #b20710; }
+        
+        #outputLink { 
+            margin-top: 25px; 
+            background: #0a0a0a; 
+            padding: 15px; 
+            border-radius: 8px; 
+            word-break: break-all; 
+            color: #00ff00; 
+            font-family: monospace; 
+            display: none; 
+            border: 1px dashed #444;
+            cursor: pointer;
+            position: relative;
+        }
+        .copy-hint { font-size: 11px; color: #888; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>DFlix Link Fixer</h2>
+    <p style="color: #ccc;">Paste Dropbox Link Here:</p>
+    <input type="text" id="rawInput" placeholder="https://www.dropbox.com/s/xxxx/video.mkv?dl=0">
+    <br>
+    <button onclick="fixAndGenerate()">FIX & GENERATE LINK</button>
+
+    <div id="outputLink" onclick="copyText()"></div>
+    <p id="copyHint" class="copy-hint">Link generated! Tap above to copy.</p>
+</div>
+
+<script>
+    function fixAndGenerate() {
+        let input = document.getElementById('rawInput').value.trim();
+        if(!input) return;
+
+        // --- ORIGINAL LOGIC RESTORED ---
+        // 1. Force converting to Direct Link using raw=1
+        let directLink = input.replace(/\?dl=[0-1]/, "?raw=1");
+        
+        if (!directLink.includes('raw=1')) {
+            directLink += (directLink.includes('?') ? '&' : '?') + 'raw=1';
+        }
+
+        // 2. Formatting for Intent
+        let cleanUrl = directLink.replace(/^https?:\/\//, '');
+
+        // 3. New Intent Structure:
+        let intentUrl = "intent://" + cleanUrl + "#Intent;scheme=https;type=video/*;package=com.brouken.player;S.title=DFlix%20Streaming;B.force_no_download=true;end";
+
+        let outputDiv = document.getElementById('outputLink');
+        let hint = document.getElementById('copyHint');
+        
+        outputDiv.innerText = intentUrl;
+        outputDiv.style.display = 'block';
+        hint.style.display = 'block';
+    }
+
+    // --- NEW BULLETPROOF COPY FUNCTION ---
+    function copyText() {
+        let text = document.getElementById('outputLink').innerText;
+        
+        // Create a temporary textarea for copying
+        let tempInput = document.createElement("textarea");
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        tempInput.setSelectionRange(0, 99999); // For mobile devices
+
+        try {
+            document.execCommand("copy");
+            alert("Link Copied to Clipboard!");
+        } catch (err) {
+            console.error("Copy failed", err);
+        }
+
+        document.body.removeChild(tempInput);
+    }
+</script>
+
+</body>
+</html>
