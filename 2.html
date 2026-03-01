@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D-FLIX | Hybrid TV & Mobile</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap');
+    :root { --primary: #E50914; --bg: #050505; --card-bg: #121212; --side-w: 80px; }
+    
+    body { background: var(--bg); color: white; font-family: 'Outfit', sans-serif; margin: 0; overflow-x: hidden; }
+    
+    .screen { display: none; padding-top: 20px; min-height: 100vh; transition: 0.4s; }
+    .screen.active { display: block; }
+
+    /* --- SIDEBAR (TV ONLY) --- */
+    .tv-sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: var(--side-w);
+      background: rgba(0,0,0,0.95); display: none; flex-direction: column;
+      align-items: center; padding-top: 40px; z-index: 6000;
+      border-right: 1px solid rgba(255,255,255,0.1); transition: 0.3s;
+    }
+    .tv-sidebar:hover, .tv-sidebar:focus-within { width: 220px; align-items: flex-start; padding-left: 20px; background: #000; }
+    
+    .side-item {
+      color: #666; text-decoration: none; margin-bottom: 35px; font-size: 1.2rem;
+      display: flex; align-items: center; transition: 0.3s; outline: none; border: none; background: none;
+    }
+    .side-item i { min-width: 40px; font-size: 1.6rem; }
+    .side-item span { opacity: 0; font-weight: 700; margin-left: 15px; white-space: nowrap; }
+    .tv-sidebar:hover span, .tv-sidebar:focus-within span { opacity: 1; }
+    
+    .side-item:focus, .side-item.active { color: var(--primary); transform: scale(1.1); }
+
+    /* --- MOBILE BOTTOM NAV --- */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 12px; z-index: 5000; border-top: 1px solid #222; }
+    .nav-btn { color: #666; background: none; border: none; font-size: 0.75rem; text-align: center; outline: none; }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn i { display: block; font-size: 1.4rem; margin-bottom: 3px; }
+
+    /* --- RESPONSIVE LAYOUT --- */
+    .main-wrapper { transition: 0.3s; }
+    
+    @media (min-width: 992px) {
+      .tv-sidebar { display: flex; }
+      .bottom-nav { display: none; }
+      .main-wrapper { margin-left: var(--side-w); }
+      .movie-grid { grid-template-columns: repeat(5, 1fr) !important; }
+      .m-card img { aspect-ratio: 16/9 !important; }
+      body { cursor: none; }
+    }
+
+    /* Standard Elements */
+    .navbar { background: rgba(0,0,0,0.8); position: sticky; top: 0; z-index: 4000; padding: 15px 5%; }
+    .brand { color: var(--primary); font-weight: 900; font-size: 1.8rem; text-decoration: none; }
+    .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px 5%; }
+    .m-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; transition: 0.3s; border: 3px solid transparent; outline: none; position: relative; }
+    .m-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .m-card .focus-title { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, black); padding: 10px; font-size: 0.8rem; opacity: 0; }
+    .m-card:focus { transform: scale(1.1); border-color: white; z-index: 100; }
+    .m-card:focus .focus-title { opacity: 1; }
+
+    .hero { height: 50vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 40px 5%; position: relative; border-radius: 20px; margin: 0 5%; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg), transparent); border-radius: 20px; }
+  </style>
+</head>
+<body onkeydown="handleRemote(event)">
+
+  <nav class="tv-sidebar">
+    <a href="#" class="brand mb-5">D</a>
+    <button class="side-item active" onclick="navTo('scr-home')" tabindex="0"><i class="fa-solid fa-house"></i><span>Home</span></button>
+    <button class="side-item" onclick="navTo('scr-cats')" tabindex="0"><i class="fa-solid fa-layer-group"></i><span>Category</span></button>
+    <button class="side-item" onclick="navTo('scr-me')" tabindex="0"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></button>
+    <button class="side-item" onclick="navTo('scr-search')" tabindex="0"><i class="fa-solid fa-search"></i><span>Search</span></button>
+  </nav>
+
+  <div class="main-wrapper">
+    <nav class="navbar d-flex justify-content-between">
+        <a href="#" class="brand">D-FLIX</a>
+        <i class="fa-solid fa-magnifying-glass fa-xl d-lg-none" onclick="navTo('scr-search')"></i>
+    </nav>
+
+    <div id="scr-home" class="screen active">
+      <div class="hero" id="hero-box" style="background-image: url('https://via.placeholder.com/1280x720')">
+        <div style="z-index: 10;">
+            <h1 id="hero-title" class="fw-bold">Welcome</h1>
+            <button class="btn btn-light fw-bold px-4 mt-2" id="hero-play" tabindex="0">▶ Play</button>
+        </div>
+      </div>
+      <div id="home-content"></div>
+    </div>
+
+    <div id="scr-cats" class="screen">
+        <div class="p-4">
+            <h3 class="fw-bold mb-4">Categories</h3>
+            <div class="movie-grid">
+                <div class="m-card p-4 text-center fw-bold" tabindex="0" onclick="filterCat('Hollywood')">HOLLYWOOD</div>
+                <div class="m-card p-4 text-center fw-bold" tabindex="0" onclick="filterCat('Web Series')">SERIES</div>
+                <div class="m-card p-4 text-center fw-bold" tabindex="0" onclick="filterCat('Bollywood')">BOLLYWOOD</div>
+                <div class="m-card p-4 text-center fw-bold" tabindex="0" onclick="filterCat('Animated')">ANIMATED</div>
+            </div>
+            <div id="cat-results" class="movie-grid"></div>
+        </div>
+    </div>
+
+    <div id="scr-me" class="screen">
+        <div class="p-4">
+            <h3 class="fw-bold">Watch History</h3>
+            <div id="history-grid" class="movie-grid"></div>
+        </div>
+    </div>
+
+    <div id="scr-search" class="screen">
+        <div class="px-4">
+            <input type="text" id="searchInput" class="form-control bg-dark text-white border-secondary mb-4" placeholder="Search..." oninput="runSearch()" tabindex="0">
+            <div id="search-results" class="movie-grid"></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="navTo('scr-home')"><i class="fa-solid fa-house"></i>Home</button>
+    <button class="nav-btn" onclick="navTo('scr-cats')"><i class="fa-solid fa-layer-group"></i>Category</button>
+    <button class="nav-btn" onclick="navTo('scr-me')"><i class="fa-solid fa-user"></i>Me</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyATfDfJNk0lPVpcsZk7yj2p_DSdK9sQXvo",
+      authDomain: "dflix-7b2d2.firebaseapp.com",
+      projectId: "dflix-7b2d2",
+      storageBucket: "dflix-7b2d2.appspot.com",
+      messagingSenderId: "410654152125",
+      appId: "1:410654152125:web:c55db9c81363abce66eed4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let masterData = [];
+    let slideIdx = 0;
+
+    window.navTo = (id) => {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn, .side-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      
+      // Select both mobile and TV buttons
+      document.querySelectorAll(`[onclick="navTo('${id}')"]`).forEach(el => el.classList.add('active'));
+      if(id === 'scr-me') renderHistory();
+    };
+
+    onSnapshot(collection(db, "movies"), (snap) => {
+      masterData = [];
+      snap.forEach(doc => masterData.push(doc.data()));
+      renderHome();
+      startAutoSlide();
+    });
+
+    function createCard(m) {
+      const card = document.createElement('div');
+      card.className = "m-card"; card.tabIndex = "0";
+      card.innerHTML = `<img src="${m.poster}"><div class="focus-title">${m.title}</div>`;
+      card.onclick = () => { saveHistory(m); window.open(m.url, '_blank'); };
+      card.onfocus = () => {
+          document.getElementById('hero-box').style.backgroundImage = `url(${m.poster})`;
+          document.getElementById('hero-title').innerText = m.title;
+          document.getElementById('hero-play').onclick = () => card.onclick();
+      };
+      return card;
+    }
+
+    function renderHome() {
+      const home = document.getElementById('home-content'); home.innerHTML = '';
+      ['Hollywood', 'Web Series', 'Bollywood'].forEach(cat => {
+          const list = masterData.filter(m => m.section === cat);
+          if(list.length > 0) {
+              home.insertAdjacentHTML('beforeend', `<h5 class="px-5 mt-4 fw-bold">${cat}</h5>`);
+              const grid = document.createElement('div');
+              grid.className = 'movie-grid';
+              list.reverse().forEach(m => grid.appendChild(createCard(m)));
+              home.appendChild(grid);
+          }
+      });
+    }
+
+    window.filterCat = (cat) => {
+        const grid = document.getElementById('cat-results'); grid.innerHTML = '';
+        masterData.filter(m => m.section === cat).forEach(m => grid.appendChild(createCard(m)));
+    };
+
+    window.runSearch = () => {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const res = document.getElementById('search-results'); res.innerHTML = '';
+        masterData.filter(m => m.title.toLowerCase().includes(q)).forEach(m => res.appendChild(createCard(m)));
+    };
+
+    function startAutoSlide() {
+        setInterval(() => {
+            if(!document.activeElement.classList.contains('m-card') && masterData.length > 0) {
+                const m = masterData[slideIdx];
+                document.getElementById('hero-box').style.backgroundImage = `url(${m.poster})`;
+                document.getElementById('hero-title').innerText = m.title;
+                slideIdx = (slideIdx + 1) % masterData.length;
+            }
+        }, 5000);
+    }
+
+    function saveHistory(m) {
+        let h = JSON.parse(localStorage.getItem('df_hist') || '[]');
+        h = h.filter(x => x.title !== m.title); h.unshift(m);
+        localStorage.setItem('df_hist', JSON.stringify(h.slice(0, 15)));
+    }
+    function renderHistory() {
+        const grid = document.getElementById('history-grid'); grid.innerHTML = '';
+        JSON.parse(localStorage.getItem('df_hist') || '[]').forEach(m => grid.appendChild(createCard(m)));
+    }
+
+    window.handleRemote = (e) => {
+        const items = document.querySelectorAll('.m-card, .side-item, .nav-btn, input, button');
+        let idx = Array.from(items).indexOf(document.activeElement);
+        if(e.keyCode === 39 && idx < items.length-1) items[idx+1].focus();
+        if(e.keyCode === 37 && idx > 0) items[idx-1].focus();
+        if(e.keyCode === 13) document.activeElement.click();
+    };
+  </script>
+</body>
+</html>
