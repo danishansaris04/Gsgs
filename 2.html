@@ -3,19 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>D-FLIX PRO | Original Style No-Zoom</title>
+  <title>D-FLIX | Ultimate Remote Control</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap');
     :root { --primary: #E50914; --bg: #050505; --card-bg: #121212; --side-w: 80px; }
     
-    body { background: var(--bg); color: white; font-family: 'Outfit', sans-serif; margin: 0; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { background: var(--bg); color: white; font-family: 'Outfit', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
     
-    .screen { display: none; padding-top: 20px; min-height: 100vh; }
+    /* Global No-Zoom & No-Scrollbars */
+    * { box-sizing: border-box; outline: none !important; }
+    ::-webkit-scrollbar { display: none; }
+
+    .main-wrapper { transition: 0.3s; height: 100vh; overflow-y: auto; scroll-behavior: smooth; }
+
+    .screen { display: none; padding-bottom: 100px; min-height: 100vh; }
     .screen.active { display: block; }
 
-    /* --- TV SIDEBAR (SLIDE BAR) --- */
+    /* --- PRO TV SIDEBAR --- */
     .tv-sidebar {
       position: fixed; left: 0; top: 0; bottom: 0; width: var(--side-w);
       background: rgba(0,0,0,0.95); display: none; flex-direction: column;
@@ -25,111 +31,69 @@
     .tv-sidebar:hover, .tv-sidebar:focus-within { width: 220px; align-items: flex-start; padding-left: 20px; background: #000; }
     
     .side-item {
-      color: #666; text-decoration: none; margin-bottom: 35px; font-size: 1.2rem;
-      display: flex; align-items: center; transition: 0.3s; outline: none; border: none; background: none; width: 100%;
+      color: #666; text-decoration: none; margin-bottom: 30px; font-size: 1.2rem;
+      display: flex; align-items: center; transition: 0.2s; border: none; background: none; width: 100%; padding: 10px;
     }
     .side-item i { min-width: 40px; font-size: 1.6rem; text-align: center; }
-    .side-item span { opacity: 0; font-weight: 700; margin-left: 15px; white-space: nowrap; transition: 0.2s; }
+    .side-item span { opacity: 0; font-weight: 700; margin-left: 15px; white-space: nowrap; }
     .tv-sidebar:hover span, .tv-sidebar:focus-within span { opacity: 1; }
-    .side-item:focus, .side-item.active { color: var(--primary); outline: none; }
+    .side-item:focus, .side-item.active { color: var(--primary); background: rgba(255,255,255,0.05); border-radius: 10px 0 0 10px; }
 
-    /* --- MOBILE BOTTOM NAV --- */
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 12px; z-index: 5000; border-top: 1px solid #222; }
-    .nav-btn { color: #666; background: none; border: none; font-size: 0.75rem; text-align: center; outline: none; }
-    .nav-btn.active { color: var(--primary); }
-    .nav-btn i { display: block; font-size: 1.4rem; margin-bottom: 3px; }
+    /* --- MOVIE CARDS --- */
+    .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px 5%; }
+    .m-card { 
+      background: var(--card-bg); border-radius: 12px; overflow: hidden; 
+      transition: 0.3s; border: 3px solid transparent; position: relative;
+    }
+    .m-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .m-card:focus { border-color: white; transform: scale(1.05); z-index: 10; }
 
-    /* --- LAYOUT WRAPPER --- */
-    .main-wrapper { transition: 0.3s; width: 100%; }
-    
     @media (min-width: 992px) {
       .tv-sidebar { display: flex; }
-      .bottom-nav { display: none; }
       .main-wrapper { margin-left: var(--side-w); }
       .movie-grid { grid-template-columns: repeat(5, 1fr) !important; }
       .m-card img { aspect-ratio: 16/9 !important; }
       body { cursor: none; }
     }
 
-    /* --- ORIGINAL HERO STYLE --- */
-    .hero { height: 60vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 30px 5%; position: relative; border-radius: 0 0 25px 25px; transition: background 1s; }
-    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 10%, transparent 80%); border-radius: 0 0 25px 25px; }
-    .hero-content { z-index: 10; width: 100%; }
+    /* Original Hero Section */
+    .hero { height: 60vh; background-size: cover; background-position: center; display: flex; align-items: flex-end; padding: 30px 5%; position: relative; margin-bottom: 20px; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 5%, transparent 90%); }
+    .hero-content { z-index: 10; }
 
-    /* --- MOVIE CARDS (NO-ZOOM FIX) --- */
-    .movie-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px 5%; }
-    .m-card { 
-      background: var(--card-bg); border-radius: 12px; overflow: hidden; 
-      transition: 0.3s; border: 3px solid transparent; outline: none; position: relative;
-    }
-    .m-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; pointer-events: none; }
-    .m-card:focus { border-color: white; transform: scale(1.05); z-index: 10; }
-    .m-card .focus-title { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 10px; font-size: 0.8rem; opacity: 0; }
-    .m-card:focus .focus-title { opacity: 1; }
-
-    /* --- CATEGORY CARDS --- */
-    .cat-card { background: #1a1a1a; padding: 25px; border-radius: 15px; text-align: center; font-weight: 700; cursor: pointer; border: 1px solid #333; outline: none; }
-    .cat-card:focus { background: var(--primary); border-color: white; }
-
-    .navbar { background: rgba(0,0,0,0.8); position: sticky; top: 0; z-index: 4000; padding: 15px 5%; border-bottom: 1px solid #222; }
-    .brand { color: var(--primary); font-weight: 900; font-size: 1.8rem; text-decoration: none; }
+    /* Mobile Bottom Nav */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; justify-content: space-around; padding: 12px; z-index: 5000; border-top: 1px solid #222; }
+    .nav-btn { color: #666; background: none; border: none; font-size: 0.75rem; text-align: center; }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn i { display: block; font-size: 1.4rem; }
   </style>
 </head>
-<body onkeydown="handleRemote(event)">
+<body>
 
-  <nav class="tv-sidebar">
-    <a href="#" class="brand mb-5">D</a>
+  <nav class="tv-sidebar" id="sidebar">
     <button class="side-item active" onclick="navTo('scr-home')" tabindex="0"><i class="fa-solid fa-house"></i><span>Home</span></button>
     <button class="side-item" onclick="navTo('scr-cats')" tabindex="0"><i class="fa-solid fa-layer-group"></i><span>Category</span></button>
     <button class="side-item" onclick="navTo('scr-me')" tabindex="0"><i class="fa-solid fa-user"></i><span>History</span></button>
     <button class="side-item" onclick="navTo('scr-search')" tabindex="0"><i class="fa-solid fa-search"></i><span>Search</span></button>
   </nav>
 
-  <div class="main-wrapper">
-    <nav class="navbar d-flex justify-content-between d-lg-none">
-        <a href="#" class="brand">D-FLIX</a>
-        <i class="fa-solid fa-search fa-xl" onclick="navTo('scr-search')"></i>
-    </nav>
-
+  <div class="main-wrapper" id="scroll-container">
     <div id="scr-home" class="screen active">
       <div class="hero" id="hero-box">
         <div class="hero-content">
             <h1 id="hero-title" class="fw-bold display-4">D-FLIX</h1>
-            <button class="btn btn-light fw-bold px-4 mt-3" id="hero-play" tabindex="0">▶ Play Now</button>
+            <button class="btn btn-danger fw-bold px-5 mt-2" id="hero-play" tabindex="0">▶ PLAY</button>
         </div>
       </div>
       <div id="home-content"></div>
     </div>
 
-    <div id="scr-cats" class="screen">
-        <div class="p-4" id="cat-main">
-            <h3 class="fw-bold mb-4">Categories</h3>
-            <div class="row g-3">
-                <div class="col-6"><div class="cat-card" tabindex="0" onclick="filterCat('Hollywood')">Hollywood</div></div>
-                <div class="col-6"><div class="cat-card" tabindex="0" onclick="filterCat('Web Series')">Series</div></div>
-                <div class="col-6"><div class="cat-card" tabindex="0" onclick="filterCat('Bollywood')">Bollywood</div></div>
-                <div class="col-6"><div class="cat-card" tabindex="0" onclick="filterCat('Animated')">Kids</div></div>
-            </div>
-            <div id="cat-results" class="movie-grid mt-4"></div>
-        </div>
-    </div>
-
-    <div id="scr-me" class="screen">
-        <div class="p-4">
-            <h3 class="fw-bold mb-4">Watch History</h3>
-            <div id="history-grid" class="movie-grid"></div>
-        </div>
-    </div>
-
-    <div id="scr-search" class="screen">
-        <div class="px-4">
-            <input type="text" id="searchInput" class="form-control bg-dark text-white border-secondary mb-4 p-3" placeholder="Search..." oninput="runSearch()" tabindex="0">
-            <div id="search-results" class="movie-grid"></div>
-        </div>
-    </div>
+    <div id="scr-cats" class="screen"><div class="p-4"><h3 class="mb-4">Categories</h3><div id="cat-results" class="movie-grid"></div></div></div>
+    <div id="scr-me" class="screen"><div class="p-4"><h3 class="mb-4">History</h3><div id="history-grid" class="movie-grid"></div></div></div>
+    <div id="scr-search" class="screen"><div class="p-4"><input type="text" id="searchInput" class="form-control bg-dark text-white mb-4" placeholder="Search..." tabindex="0"><div id="search-results" class="movie-grid"></div></div></div>
   </div>
 
-  <div class="bottom-nav">
+  <div class="bottom-nav d-lg-none">
     <button class="nav-btn active" onclick="navTo('scr-home')"><i class="fa-solid fa-house"></i>Home</button>
     <button class="nav-btn" onclick="navTo('scr-cats')"><i class="fa-solid fa-layer-group"></i>Explore</button>
     <button class="nav-btn" onclick="navTo('scr-me')"><i class="fa-solid fa-user"></i>Me</button>
@@ -157,8 +121,7 @@
       document.querySelectorAll('.nav-btn, .side-item').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       document.querySelectorAll(`[onclick="navTo('${id}')"]`).forEach(el => el.classList.add('active'));
-      if(id === 'scr-me') renderHistory();
-      window.scrollTo(0,0);
+      document.getElementById('scroll-container').scrollTop = 0;
     };
 
     onSnapshot(collection(db, "movies"), (snap) => {
@@ -170,12 +133,12 @@
     function createCard(m) {
       const card = document.createElement('div');
       card.className = "m-card"; card.tabIndex = "0";
-      card.innerHTML = `<img src="${m.poster}"><div class="focus-title">${m.title}</div>`;
-      card.onclick = () => { saveHistory(m); window.open(m.url, '_blank'); };
+      card.innerHTML = `<img src="${m.poster}">`;
+      card.onclick = () => window.open(m.url, '_blank');
       card.onfocus = () => {
           document.getElementById('hero-box').style.backgroundImage = `url(${m.poster})`;
           document.getElementById('hero-title').innerText = m.title;
-          card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       };
       return card;
     }
@@ -185,7 +148,7 @@
       ['Hollywood', 'Web Series', 'Bollywood'].forEach(cat => {
           const list = masterData.filter(m => m.section === cat);
           if(list.length > 0) {
-              home.insertAdjacentHTML('beforeend', `<h5 class="px-5 mt-4 fw-bold">${cat}</h5>`);
+              home.insertAdjacentHTML('beforeend', `<h5 class="px-5 mt-4 fw-bold text-secondary">${cat}</h5>`);
               const grid = document.createElement('div'); grid.className = 'movie-grid';
               list.reverse().forEach(m => grid.appendChild(createCard(m)));
               home.appendChild(grid);
@@ -193,36 +156,46 @@
       });
     }
 
-    window.filterCat = (cat) => {
-        const grid = document.getElementById('cat-results'); grid.innerHTML = '';
-        masterData.filter(m => m.section === cat).forEach(m => grid.appendChild(createCard(m)));
-    };
+    // --- ULTIMATE SMART REMOTE NAVIGATION ---
+    window.addEventListener('keydown', (e) => {
+      const active = document.activeElement;
+      const focusables = Array.from(document.querySelectorAll('[tabindex="0"]:not([style*="display: none"])')).filter(el => el.offsetParent !== null);
+      let index = focusables.indexOf(active);
 
-    window.runSearch = () => {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        const res = document.getElementById('search-results'); res.innerHTML = '';
-        masterData.filter(m => m.title.toLowerCase().includes(q)).forEach(m => res.appendChild(createCard(m)));
-    };
+      const getRect = (el) => el.getBoundingClientRect();
+      const curRect = getRect(active);
 
-    function saveHistory(m) {
-        let h = JSON.parse(localStorage.getItem('df_hist') || '[]');
-        h = h.filter(x => x.title !== m.title); h.unshift(m);
-        localStorage.setItem('df_hist', JSON.stringify(h.slice(0, 15)));
-    }
-    function renderHistory() {
-        const grid = document.getElementById('history-grid'); grid.innerHTML = '';
-        JSON.parse(localStorage.getItem('df_hist') || '[]').forEach(m => grid.appendChild(createCard(m)));
-    }
+      let next = null;
+      let minDist = Infinity;
 
-    window.handleRemote = (e) => {
-        const items = document.querySelectorAll('.m-card, .side-item, .nav-btn, input, button, .cat-card');
-        let idx = Array.from(items).indexOf(document.activeElement);
-        if(e.keyCode === 39 && idx < items.length-1) items[idx+1].focus();
-        if(e.keyCode === 37 && idx > 0) items[idx-1].focus();
-        if(e.keyCode === 40 && idx + 5 < items.length) items[idx+5].focus();
-        if(e.keyCode === 38 && idx - 5 >= 0) items[idx-5].focus();
-        if(e.keyCode === 13) document.activeElement.click();
-    };
+      const findNearest = (direction) => {
+        focusables.forEach(el => {
+          if (el === active) return;
+          const r = getRect(el);
+          let isValid = false;
+          
+          if (direction === '39') isValid = r.left >= curRect.right - 10; // Right
+          if (direction === '37') isValid = r.right <= curRect.left + 10; // Left
+          if (direction === '40') isValid = r.top >= curRect.bottom - 10; // Down
+          if (direction === '38') isValid = r.bottom <= curRect.top + 10; // Up
+
+          if (isValid) {
+            const dist = Math.sqrt(Math.pow(r.left - curRect.left, 2) + Math.pow(r.top - curRect.top, 2));
+            if (dist < minDist) { minDist = dist; next = el; }
+          }
+        });
+        if (next) next.focus();
+      };
+
+      if (['37', '38', '39', '40'].includes(e.keyCode.toString())) {
+        e.preventDefault();
+        findNearest(e.keyCode.toString());
+      }
+      if (e.keyCode === 13) active.click();
+    });
+
+    // Initial Focus
+    setTimeout(() => document.querySelector('.side-item').focus(), 500);
   </script>
 </body>
 </html>
