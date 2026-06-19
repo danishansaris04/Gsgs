@@ -14,6 +14,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
 
+    /* Pure OLED Hacker Dark Mode Setup */
     :root {
       --primary: #ef4444; 
       --bg-dark: #000000; 
@@ -40,6 +41,7 @@
     ::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
+    /* Navbar Fixed */
     .navbar {
       background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(20px);
       margin: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -47,6 +49,7 @@
     }
     .navbar-brand { color: var(--primary) !important; font-weight: 900; letter-spacing: -1px; font-size: 1.5rem; }
 
+    /* Path Truncation UI Layer */
     .path-badge {
       max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       font-size: 10px; color: #a1a1aa; font-family: monospace; background: #09090b;
@@ -54,6 +57,7 @@
     }
     @media (min-width: 576px) { .path-badge { max-width: 300px; } }
 
+    /* Universal Search Bar */
     .search-container { 
       padding: 10px 5%; position: fixed; top: 65px; width: 100%; z-index: 4500; 
       background: var(--bg-dark); transition: 0.3s;
@@ -66,8 +70,10 @@
     }
     .search-wrapper input:focus { border-color: var(--primary); }
 
+    /* Main Content Area */
     .main-wrapper { margin-top: 160px; }
 
+    /* Trending Banner */
     .trending-box { padding: 0 5%; margin-bottom: 25px; }
     .t-slider {
       width: 100%; height: 120px; border-radius: 20px;
@@ -76,9 +82,11 @@
       box-shadow: 0 10px 20px rgba(0,0,0,0.4); text-align: center;
     }
 
+    /* Grids Configuration */
     .movie-container { padding: 0 5%; }
     .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-bottom: 30px; }
     
+    /* Clean Minimal Box Cards */
     .m-card {
       position: relative; background: var(--card-bg); border-radius: 12px; overflow: hidden;
       transition: 0.3s ease; animation: fadeInUp 0.4s ease forwards; opacity: 0; cursor: pointer;
@@ -88,6 +96,7 @@
     .m-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 8px 20px rgba(239,68,68,0.1); }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     
+    /* Icon Visual Canvas Center Box */
     .icon-box-preview {
         flex: 1; min-height: 100px; display: flex; align-items: center; justify-content: center;
         background: rgba(255,255,255,0.01); border-bottom: 1px solid rgba(255,255,255,0.02);
@@ -95,6 +104,7 @@
     }
     .m-card:hover .icon-box-preview { background: rgba(239,68,68,0.03); }
     
+    /* Full Name Typography Output Box */
     .m-content { 
         padding: 12px 10px; background: transparent;
         font-size: 0.75rem; font-weight: 600; color: #d4d4d8;
@@ -103,6 +113,7 @@
     }
     .m-card:hover .m-content { color: #ffffff; }
 
+    /* Back Directory Controller Tab */
     .back-node-button {
         display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;
         background: var(--card-bg); border: 1px solid rgba(255,255,255,0.05);
@@ -111,6 +122,7 @@
     }
     .back-node-button:hover { border-color: var(--primary); color: #fff; }
 
+    /* Navigation Panel */
     .bottom-nav {
       position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
       width: 90%; max-width: 400px; background: rgba(9, 9, 11, 0.95);
@@ -137,6 +149,7 @@
     .modal-footer { border-top: 1px solid #1f1f23; }
     .intent-btn { transition: 0.2s; padding: 12px; font-weight: bold; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
+    /* Video Player Screen Layout Fixed */
     #video-player-screen {
       position: fixed; inset: 0; background: #000000; z-index: 6500; display: none; flex-direction: column; justify-content: space-between; overflow: hidden;
     }
@@ -210,7 +223,7 @@
           <h6 class="modal-title fw-bold" id="routingModalTitle">Select Playback Environment</h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body d-flex flex-col gap-3 flex-column">
+        <div class="modal-body d-flex flex-column gap-3">
           <button type="button" class="btn btn-danger intent-btn w-100" id="routeToWebPlayerBtn">
             <i class="fa-solid fa-globe"></i> Play in Web Player Engine
           </button>
@@ -248,7 +261,7 @@
               <button class="btn-close-player" id="btn-close-player"><i class="fa-solid fa-arrow-left me-2"></i>CLOSE STREAM</button>
               <span id="player-video-title" class="small text-uppercase tracking-wider fw-bold text-white text-truncate" style="max-width:250px;">Streaming Node</span>
           </div>
-          <div class="badge bg-danger font-monospace">HYBRID PLYR FRAME</div>
+          <div class="badge bg-danger font-monospace">DIRECT SERVER PLYR</div>
       </div>
       <div class="w-100 h-100 d-flex align-items-center justify-content-center">
           <video id="main-video-element" class="w-100 h-100" playsinline controls></video>
@@ -276,7 +289,6 @@
     let currentPath = "";
     let cachedEntries = [];
     
-    // Track runtime global selected item reference data
     let routingModalInstance;
     let activeItemSelection = null;
 
@@ -324,7 +336,7 @@
             }
         });
 
-        // Modal Action Bindings
+        // Modal Action Routing Buttons
         document.getElementById('routeToWebPlayerBtn').addEventListener('click', () => {
             if(activeItemSelection) {
                 routingModalInstance.hide();
@@ -400,54 +412,57 @@
         });
     }
 
-    // Modal Trigger point saving references
     function triggerPlaybackSelection(item) {
         activeItemSelection = item;
         document.getElementById('routingModalTitle').innerText = item.name;
         routingModalInstance.show();
     }
 
-    // PATH 1: Render Video inside Web App Layout
+    // PATH 1: Render Video inside Web App Layout (Server Direct Dynamic Patch)
     function executeWebStreaming(item) {
         dbx.filesGetTemporaryLink({ path: item.path_lower })
             .then((res) => {
-                let cleanLink = res.result.link;
-                if(cleanLink.includes("?dl=0")) cleanLink = cleanLink.replace("?dl=0", "?dl=1");
+                let rawLink = res.result.link;
+                
+                // Hotlink swap: route from standard user layer to cdn data frame
+                if (rawLink.includes("www.dropbox.com")) {
+                    rawLink = rawLink.replace("www.dropbox.com", "dl.dropboxusercontent.com");
+                }
+                let cleanUrl = rawLink.split('?')[0] + "?raw=1";
 
                 document.getElementById('player-video-title').innerText = item.name;
                 document.getElementById('video-player-screen').style.display = 'flex';
                 
                 initPlyrCoreEngine();
                 
+                const fileExt = item.name.split('.').pop().toLowerCase();
+                const mimeType = fileExt === 'mkv' ? 'video/x-matroska' : 'video/mp4';
+                
                 plyrInstance.source = {
                     type: 'video',
                     title: item.name,
-                    sources: [{ src: cleanLink, type: 'video/mp4' }]
+                    sources: [{ src: cleanUrl, type: mimeType }]
                 };
-                plyrInstance.play();
+                plyrInstance.play().catch(() => {
+                    console.log("Core system web codec limits hit.");
+                });
             }).catch(() => alert("Error processing temporary token stream link."));
     }
 
-    // PATH 2: Parse and structure Native Android App Intent Link System
+    // PATH 2: Android App Intent Engine Wrapper
     function executeAndroidAppIntent(item) {
         dbx.filesGetTemporaryLink({ path: item.path_lower })
             .then((res) => {
                 let rawLink = res.result.link;
                 
-                // Dropbox stream protocol forcing raw data buffer streaming over downloads
-                if(rawLink.includes("?dl=0")) rawLink = rawLink.replace("?dl=0", "?dl=1");
-                if(!rawLink.includes("&raw=1")) rawLink += "&raw=1";
-
-                // Stripping dynamic protocol signatures from rawLink safely
-                let cleanLinkNoProtocol = rawLink.replace(/^https?:\/\//i, '');
-
-                // Encoding title safely to pass over secure android manifest intents
+                if (rawLink.includes("www.dropbox.com")) {
+                    rawLink = rawLink.replace("www.dropbox.com", "dl.dropboxusercontent.com");
+                }
+                let cleanUrl = rawLink.split('?')[0] + "?raw=1";
+                let cleanLinkNoProtocol = cleanUrl.replace(/^https?:\/\//i, '');
                 let escapedTitle = encodeURIComponent(item.name);
 
-                // Reconstructing strict platform layout provided in documentation schema
                 let computedIntentURI = `intent://${cleanLinkNoProtocol}#Intent;scheme=https;type=video/*;package=com.kieling.whitescreen;S.title=${escapedTitle};B.force_no_download=true;end`;
-                
-                // Fire Native Android Intent Link Wrapper Structure
                 window.location.href = computedIntentURI;
             }).catch(() => alert("Failed to compound dynamic android playback matrix link."));
     }
